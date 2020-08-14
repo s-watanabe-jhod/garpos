@@ -17,11 +17,11 @@ def corr_attitude(rx, ry, rz, thy, thr, thp):
 	Parameters
 	----------
 	rx : float
-		Rightward position of GNSS ant. from transducer (in vessel's coord.)
+		Forward position of transducer from GNSS ant. (in vessel's coord.)
 	ry : float
-		Forward position of GNSS ant. from transducer (in vessel's coord.)
+		Rightward position of transducer from GNSS ant. (in vessel's coord.)
 	rz : float
-		Upward position of GNSS ant. from transducer (in vessel's coord.)
+		Downward position of transducer from GNSS ant. (in vessel's coord.)
 	thy : float
 		Yaw/Heading in degree
 	thr : float
@@ -50,21 +50,25 @@ def corr_attitude(rx, ry, rz, thy, thr, thp):
 	cyw = math.cos(yw)
 	syw = math.sin(yw)
 
-	trans = np.matrix([[    crl,  0.0,    -srl],
-					   [spc*crl,  cpc, spc*crl],
-					   [cpc*srl, -spc, cpc*crl]])
+	tr_rl = np.matrix([[ 1.0, 0.0, 0.0],
+					   [ 0.0, crl,-srl],
+					   [ 0.0, srl, crl]])
 
+	tr_pc = np.matrix([[ cpc, 0.0, spc],
+					   [ 0.0, 1.0, 0.0],
+					   [-spc, 0.0, cpc]])
+
+	tr_yw = np.matrix([[ cyw,-syw, 0.0],
+					   [ syw, cyw, 0.0],
+					   [ 0.0, 0.0, 1.0]])
+
+	trans = (tr_yw @ tr_pc) @ tr_rl
 	atd  = np.matrix([[rx],[ry],[rz]])
-	dxyz = np.matmul(trans,atd)
+	dned = trans @ atd
 
-	trans = np.matrix([[ cyw, syw,  0.0],
-					   [-syw, cyw,  0.0],
-					   [ 0.0, 0.0, -1.0]])
-	denu  = np.matmul(trans,dxyz)
-
-	pole_de = denu[0,0]
-	pole_dn = denu[1,0]
-	pole_du = denu[2,0]
+	pole_de =  dned[1,0]
+	pole_dn =  dned[0,0]
+	pole_du = -dned[2,0]
 
 	return pole_de, pole_dn, pole_du
 

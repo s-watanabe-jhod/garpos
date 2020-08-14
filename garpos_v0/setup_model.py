@@ -214,7 +214,7 @@ def derivative2(imp0, p, knots, lambdas):
 	return H
 
 
-def data_correlation(shotdat, icorrE, T0, sigma_t, sigma_m):
+def data_correlation(shotdat, icorrE, T0, mu_t, mu_m):
 	"""
 	Calculate the covariance matrix for data.
 
@@ -226,9 +226,9 @@ def data_correlation(shotdat, icorrE, T0, sigma_t, sigma_m):
 		if the matrix has finite covariance terms or not.
 	T0 : float
 		Typical travel time (in sec.).
-	sigma_t : float
+	mu_t : float
 		Correlation length (in sec.).
-	sigma_m : float
+	mu_m : float
 		Ratio of correlation between the different transponders.
 
 	Returns
@@ -246,12 +246,15 @@ def data_correlation(shotdat, icorrE, T0, sigma_t, sigma_m):
 		ndata = shotdat.index.size
 		sts = shotdat.ST.values
 		mtids = shotdat.mtid.values
+		negativedST = shotdat[ (shotdat.ST.diff(1) == 0.) & (shotdat.mtid.diff(1) ==0.) ]
+		if len(negativedST) > 0:
+			print(negativedST.index)
 
 		E = lil_matrix( (ndata, ndata) )
 		for i, (iMT, iST) in enumerate(zip( mtids, sts )):
-			idx = shotdat[ ( abs(sts - iST) < sigma_t * 4.)].index
-			dshot = np.abs(iST - sts[idx])/sigma_t
-			dcorr = np.exp(-dshot) * (sigma_m + (1.-sigma_m)*(iMT==mtids[idx]))
+			idx = shotdat[ ( abs(sts - iST) < mu_t * 4.)].index
+			dshot = np.abs(iST - sts[idx])/mu_t
+			dcorr = np.exp(-dshot) * (mu_m + (1.-mu_m)*(iMT==mtids[idx]))
 			E[i,idx] = dcorr / TT0[i] / TT0[idx]
 		E = E.tocsc()
 

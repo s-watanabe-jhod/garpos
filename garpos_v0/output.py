@@ -49,9 +49,9 @@ def write_cfg(of, obsp, datap, sitep, modelp, comment=""):
 	pl += "  ".join(["%10.3e" % p for p in modelp[1][6:]])
 	Config += "\n dCentPos    =  " + pl
 	
-	Config += "\n# TD_to_ANT  :      'right'   'forward'    'upward'   "
-	Config += "'sigma_R'   'sigma_F'   'sigma_U'   "
-	Config += "'cov_FU'    'cov_UR'    'cov_RF'"
+	Config += "\n# ANT_to_TD  :    'forward' 'rightward'  'downward'   "
+	Config += "'sigma_F'   'sigma_R'   'sigma_D'   "
+	Config += "'cov_RD'    'cov_DF'    'cov_FR'"
 	pl  = "  ".join(["%10.4f" % p for p in modelp[2][0:6]]) + "  "
 	pl += "  ".join(["%10.3e" % p for p in modelp[2][6:]])
 	Config += "\n ATDoffset   =  " + pl
