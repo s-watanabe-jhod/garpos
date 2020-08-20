@@ -8,14 +8,14 @@ Latest version is GARPOS v0.1.0 (Jul. 01. 2020)
 
 # Citation
 
-## for methodology
+### for methodology
 
 Watanabe, S., Ishikawa, T., Yokota, Y., and Nakamura, Y., (2020), GARPOS: analysis software for the GNSS-A seafloor positioning with simultaneous estimation of sound speed structure
 
-## for code
+### for code
 Shun-ichi Watanabe, Tadashi Ishikawa, Yusuke Yokota, & Yuto Nakamura. (2020, August 20). GARPOS v0.1.0: Analysis tool for GNSS-Acoustic seafloor positioning (Version 0.1.0). Zenodo. http://doi.org/10.5281/zenodo.3992688
 
-### Corresponding author
+## Corresponding author
 
 * Shun-ichi Watanabe
 * Hydrographic and Oceanographic Department, Japan Coast Guard
