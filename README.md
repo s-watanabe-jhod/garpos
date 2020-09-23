@@ -141,8 +141,8 @@ since it will create result files for all combinations of hyperparameters.
 | 22  | dV0         | Sound speed variation (for dV0) |
 | 23  | gradV1e     | Sound speed variation (for east component of grad(V1)) |
 | 24  | gradV1n     | Sound speed variation (for north component of grad(V1)) |
-| 25  | gradV1e     | Sound speed variation (for east component of grad(V2)) |
-| 26  | gradV1n     | Sound speed variation (for north component of grad(V2)) |
+| 25  | gradV2e     | Sound speed variation (for east component of grad(V2)) |
+| 26  | gradV2n     | Sound speed variation (for north component of grad(V2)) |
 | 27  | dV          | Correction term transformed into sound speed variation (gamma x V0) |
 | 28  | LogResidual | Actual residuals in estimation (log(TT) - log(calculated TT) |
 |     |             | |
