@@ -1,4 +1,4 @@
-#!/usr/bin/python_ana3
+#!/usr/bin/env python
 import os
 import sys
 import glob
