@@ -98,7 +98,7 @@ since it will create result files for all combinations of hyperparameters.
 
 + drive_garpos (in garpos_main.py)
  + parallelrun (in garpos_main.py)
-   + MAPestimate (in map_estimation.py)
+   + MPestimate (in mp_estimation.py)
      + init_position (in setup_model.py)
      + make_splineknots (in setup_model.py)
      + derivative2 (in setup_model.py)

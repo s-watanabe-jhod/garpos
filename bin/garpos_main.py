@@ -19,12 +19,12 @@ from pandas.plotting import scatter_matrix
 import matplotlib.pyplot as plt
 
 # garpos module
-from .map_estimation import MAPestimate
+from .mp_estimation import MPestimate
 
 
 def parallelrun(inplist, maxcore):
 	"""
-	Run the MAP estimation in parallel.
+	Run the model parameter estimation in parallel.
 	
 	Parameters
 	----------
@@ -62,7 +62,7 @@ def parallelrun(inplist, maxcore):
 	inp = list(zip(i0,i1,o1,o2,h0,h1,h2,h3,p0))
 	
 	with Pool(processes=mc) as p:
-		reslist = p.starmap(MAPestimate, inp)
+		reslist = p.starmap(MPestimate, inp)
 		p.close()
 	
 	inplist["resfile"] = [ r[0] for r in reslist ]

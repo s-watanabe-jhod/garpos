@@ -16,9 +16,9 @@ from .forward import calc_forward, calc_gamma, jacobian_pos
 from .output import outresults
 
 
-def MAPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
+def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 	"""
-	Run the MAP estimation in parallel.
+	Run the model parameter estimation. (under given hyperparameter)
 	
 	Parameters
 	----------
