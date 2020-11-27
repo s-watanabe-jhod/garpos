@@ -3,17 +3,17 @@
 "GARPOS" (GNSS-Acoustic Ranging combined POsitioning Solver) is an analysis tool for GNSS-Acoustic seafloor positioning.
 
 ### Version
-Latest version is GARPOS v0.1.0 (Jul. 01. 2020)
+Latest version is GARPOS v1.0.0 (Nov. 20. 2020)
 
 
 # Citation
 
 ### for methodology
 
-Watanabe, S., Ishikawa, T., Yokota, Y., & Nakamura, Y. (2020). GARPOS: analysis software for the GNSS-A seafloor positioning with simultaneous estimation of sound speed structure. https://doi.org/10.31223/osf.io/t8dm4
+Watanabe, S., Ishikawa, T., Yokota, Y., & Nakamura, Y. (2020). GARPOS: analysis software for the GNSS-A seafloor positioning with simultaneous estimation of sound speed structure, Front. Earth Sci., https://doi.org/10.3389/feart.2020.597532, (Preprint version is available at https://doi.org/10.31223/osf.io/t8dm4)
 
 ### for code
-Shun-ichi Watanabe, Tadashi Ishikawa, Yusuke Yokota, & Yuto Nakamura. (2020, August 20). GARPOS v0.1.0: Analysis tool for GNSS-Acoustic seafloor positioning (Version 0.1.0). Zenodo. http://doi.org/10.5281/zenodo.3992688
+Shun-ichi Watanabe, Tadashi Ishikawa, Yusuke Yokota, & Yuto Nakamura. (2020). GARPOS: Analysis tool for GNSS-Acoustic seafloor positioning (Version 1.0.0). Zenodo. http://doi.org/10.5281/zenodo.xxx
 
 ## Corresponding author
 
@@ -24,7 +24,7 @@ Shun-ichi Watanabe, Tadashi Ishikawa, Yusuke Yokota, & Yuto Nakamura. (2020, Aug
 
 # License
 
-"GARPOS" is distributed under the [GPL 3.0](https://www.gnu.org/licenses/gpl-3.0.html) license.
+"GARPOS" is distributed under the [GPL 3.0] (https://www.gnu.org/licenses/gpl-3.0.html) license.
 
 
 ### Algorithm and documentation

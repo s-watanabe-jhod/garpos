@@ -49,9 +49,9 @@ def write_cfg(of, obsp, datap, sitep, modelp, comment=""):
 	pl += "  ".join(["%10.3e" % p for p in modelp[1][6:]])
 	Config += "\n dCentPos    =  " + pl
 	
-	Config += "\n# TD_to_ANT  :      'right'   'forward'    'upward'   "
-	Config += "'sigma_R'   'sigma_F'   'sigma_U'   "
-	Config += "'cov_FU'    'cov_UR'    'cov_RF'"
+	Config += "\n# ANT_to_TD  :    'forward' 'rightward'  'downward'   "
+	Config += "'sigma_F'   'sigma_R'   'sigma_D'   "
+	Config += "'cov_RD'    'cov_DF'    'cov_FR'"
 	pl  = "  ".join(["%10.4f" % p for p in modelp[2][0:6]]) + "  "
 	pl += "  ".join(["%10.3e" % p for p in modelp[2][6:]])
 	Config += "\n ATDoffset   =  " + pl
@@ -69,7 +69,7 @@ def write_cfg(of, obsp, datap, sitep, modelp, comment=""):
 
 
 def outresults(odir, suf, cfg, invtyp, imp0, slvidx0,
-			   C, mp, shots, comment, MTs, mtidx, av, inode, nodr):
+			   C, mp, shots, comment, MTs, mtidx, av):
 	"""
 	Output the results.
 	"""
@@ -85,17 +85,17 @@ def outresults(odir, suf, cfg, invtyp, imp0, slvidx0,
 	svpf = cfg.get("Obs-parameter", "SoundSpeed")
 	
 	# filenames to output
-	filebase = site + "." + camp #+ suf
+	filebase = site + "." + camp + suf
 	savfile  = odir + filebase + "-obs.csv"
 	resfile  = odir + filebase + "-res.dat"
 	varfile  = odir + filebase + "-var.dat"
 	mplfile  = odir + filebase + "-m.p.dat"
 	
 	obsfile  = cfg.get("Data-file", "datacsv")
-#	if obsfile == savfile:
-#		savfile = odir + filebase + "_mod-obs.csv"
-#		print("Warning : same file name for input/output obs.csv")
-#		print("  changed the output name to %s" % savfile)
+	if obsfile == savfile:
+		savfile = odir + filebase + "_mod-obs.csv"
+		print("Warning : same file name for input/output obs.csv")
+		print("  changed the output name to %s" % savfile)
 	
 	##################
 	# Write CFG Data #
@@ -148,13 +148,6 @@ def outresults(odir, suf, cfg, invtyp, imp0, slvidx0,
 		shots['gradV1n'] = av[0][2]/2. + av[1][2]/2.
 		shots['gradV2e'] = av[0][3]/2. + av[1][3]/2.
 		shots['gradV2n'] = av[0][4]/2. + av[1][4]/2.
-		gnode=[]
-		inn=0
-		for n in range(nodr):
-			inn += (inode*(2**n)+1)**2
-		for i in range(inn*2):
-			gnode.append('gsp1_' + str(i))
-			shots[gnode[i]] = av[0][5+i]/2. + av[1][5+i]/2.
 	elif not "dV0" in shots.columns:
 		shots['dV0'] = 0.
 		shots['gradV1e'] = 0.
@@ -164,18 +157,13 @@ def outresults(odir, suf, cfg, invtyp, imp0, slvidx0,
 	
 	shots["LogResidual"] = shots["ResiTT"]
 	shots["ResiTT"] = shots["ResiTTreal"]
-	alllist=['SET','LN','MT','TT','ResiTT', 'TakeOff', 'gamma', 'flag',
+	ashot = shots.loc[:,[
+		'SET','LN','MT','TT','ResiTT', 'TakeOff', 'gamma', 'flag',
 		'ST','ant_e0','ant_n0','ant_u0','head0','pitch0','roll0',
 		'RT','ant_e1','ant_n1','ant_u1','head1','pitch1','roll1',
 		'dV0', 'gradV1e', 'gradV1n', 'gradV2e', 'gradV2n',
-		'dV', 'LogResidual'] + gnode
-	ashot = shots.loc[:,alllist]
-#		'SET','LN','MT','TT','ResiTT', 'TakeOff', 'gamma', 'flag',
-#		'ST','ant_e0','ant_n0','ant_u0','head0','pitch0','roll0',
-#		'RT','ant_e1','ant_n1','ant_u1','head1','pitch1','roll1',
-#		'dV0', 'gradV1e', 'gradV1n', 'gradV2e', 'gradV2n',
-#		'dV', 'LogResidual', 
-#		]]
+		'dV', 'LogResidual', 
+		]]
 	
 	ashot['TT'] = ashot['TT'].round(7)
 	ashot['ST'] = ashot['ST'].round(7)
@@ -195,7 +183,10 @@ def outresults(odir, suf, cfg, invtyp, imp0, slvidx0,
 	
 	ashot.to_csv( savfile )
 	hd = "# cfgfile = %s\n" % resfile
-	os.system('sed -i -e "1i ' + hd + '" ' + savfile )
+	outfile = open(savfile, "w")
+	outfile.write(hd)
+	outfile.close()
+	ashot.to_csv(savfile, mode='a')
 	
 	######################################################
 	# Write Covariance Matrix and Model Parameter Vector #

@@ -223,8 +223,8 @@ if __name__ == '__main__':
 		dCPos  = " dCentPos    =  %10.4f  %10.4f  %10.4f" % (0.,0.,0.)
 		dCPos += "  %10.4f  %10.4f  %10.4f" % (3.,3.,3.)
 		
-		basename = resf.split("/")[-1]
-		cfgf = cfgdir +"/"+ basename.split("-")[0] + "-fix.ini"
+		basename = os.path.basename(resf)
+		cfgf = os.path.join(cfgdir, basename.split("-")[0] + "-fix.ini")
 		
 		# modify ini file
 		f = open(resf,"r")
