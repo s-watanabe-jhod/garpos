@@ -175,6 +175,7 @@ def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 	shots['dn0'] = shots['ant_n0'].values - shots['ant_n0'].values.mean()
 	shots['de1'] = shots['ant_e1'].values - shots['ant_e1'].values.mean()
 	shots['dn1'] = shots['ant_n1'].values - shots['ant_n1'].values.mean()
+	shots['iniflag'] = shots['flag'].copy()
 	
 	#####################################
 	# Set log(TT/T0) and initial values #
