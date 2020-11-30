@@ -79,7 +79,7 @@ def calc_forward(shots, mp, nMT, icfg, svp, T0):
 		sigRTT = shots[~shots['flag']].ResiTT.std()
 		th0 = aveRTT + rsig * sigRTT
 		th1 = aveRTT - rsig * sigRTT
-		shots['flag'] = (shots['ResiTT'] > th0) | (shots['ResiTT'] < th1)
+		shots['flag'] = ((shots['ResiTT'] > th0) | (shots['ResiTT'] < th1)) | shots['iniflag']
 		aveRTT1 = shots[~shots['flag']].ResiTT.mean()
 		sigRTT1 = shots[~shots['flag']].ResiTT.std()
 
