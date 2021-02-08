@@ -28,7 +28,7 @@ if __name__ == '__main__':
 	resfiles.sort()
 	nresf = len(resfiles)
 	
-	rmcri = 3.5
+	rmcri = 4.0
 	
 	if nresf == 0:
 		print("NOT FOUND (site-parameter files) :: %s" % options.resfiles)

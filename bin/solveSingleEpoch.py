@@ -3,9 +3,9 @@ from optparse import OptionParser
 import os
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+#sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
-from bin.garpos_main import drive_garpos
+from garpos_v100.garpos_main import drive_garpos
 
 if __name__ == '__main__':
 	

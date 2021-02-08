@@ -1,6 +1,9 @@
 """
 Created:
 	07/01/2020 by S. Watanabe
+Modified:
+	02/01/2021 by S. Watanabe
+		to fix unknown MT number flag "M00" for mis-response seen in TU's sites.
 """
 import os
 import sys
@@ -97,16 +100,31 @@ def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 	
 	# check NaN in shotdata
 	shots = shots[~shots.isnull().any(axis=1)].reset_index(drop=True)
+	# check TT > 0 in shotdata
+	shots = shots[~(shots.TT <= 0.)].reset_index(drop=True)
 	
 	### Sound speed profile ###
 	svpf = cfg.get("Obs-parameter", "SoundSpeed")
 	svp = pd.read_csv(svpf, comment='#')
+	site = cfg.get("Obs-parameter", "Site_name")
 	
 	### IDs of existing transponder ###
-	MTs  = cfg.get("Site-parameter", "Stations").split()
+	MTs = cfg.get("Site-parameter", "Stations").split()
 	MTs = [ str(mt) for mt in MTs ]
 	nMT = len(MTs)
+	M00 = shots[ shots.MT == "M00" ].reset_index(drop=True)
 	shots = shots[ shots.MT.isin(MTs) ].reset_index(drop=True)
+	
+	# for mis-response in MT number (e.g., TU sites) verification
+	shots["m0flag"] = False
+	M00["m0flag"] = True
+	M00["flag"] = True
+	for mt in MTs:
+		addshots = M00.copy()
+		addshots['MT'] = mt
+		shots = pd.concat([shots,addshots])
+	shots = shots.reset_index()
+	chkMT = rsig > 0.1 and len(M00) >= 1
 	
 	############################
 	### Set Model Parameters ###
@@ -263,8 +281,10 @@ def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 		alpha = 1.0 # fixed
 		dmp  = alpha * ( Ck @ rk )
 		dxmax = max(abs(dmp[:]))
-		if invtyp == 1:
+		if invtyp == 1 and rsig <= 0.1:
 			dposmax = 0. # no loop needed in invtyp = 1
+		elif invtyp == 1 and rsig > 0.1:
+			dposmax = ConvCriteria/200.
 		else:
 			dposmax = max(abs(dmp[:nmppos]))
 			if dxmax > 10.:
@@ -288,6 +308,22 @@ def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 		shots['dV'] = shots.gamma * V0
 		
 		shots = calc_forward(shots, mp, nMT, icfg, svp, T0)
+		
+		# for mis-response in MT number (e.g., TU sites) verification
+		if chkMT and iconv >= 1:
+			print("Check MT number for shots named 'M00'")
+			comment += "Check MT number for shots named 'M00'\n"
+			rsigm0 = 1.0
+			aveRTT = shots[~shots['flag']].ResiTT.mean()
+			sigRTT = shots[~shots['flag']].ResiTT.std()
+			th0 = aveRTT + rsigm0 * sigRTT
+			th1 = aveRTT - rsigm0 * sigRTT
+			shots.loc[ (shots.m0flag), ['flag']] = ((shots['ResiTT'] > th0) | (shots['ResiTT'] < th1))
+			aveRTT1 = shots[~shots['flag']].ResiTT.mean()
+			sigRTT1 = shots[~shots['flag']].ResiTT.std()
+		
+		
+		
 		tmp = shots[~shots['flag']].reset_index(drop=True).copy()
 		ndata = len(tmp.index)
 		if rsig > 0.1:
@@ -318,7 +354,7 @@ def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 		print(loopres)
 		comment += "#"+loopres+"\n"
 		
-		if dxmax < ConvCriteria/100. or dposmax < ConvCriteria/1000.:
+		if (dxmax < ConvCriteria/100. or dposmax < ConvCriteria/1000.) and not chkMT:
 			break
 		elif dxmax < ConvCriteria:
 			iconv += 1
@@ -355,6 +391,7 @@ def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 	#####################
 	# Write Result data #
 	#####################
+	
 	resf, dcpos = outresults(odir, suf, cfg, invtyp, imp0, slvidx0,
 							 C, mp, shots, comment, MTs, mtidx, av)
 	
