@@ -8,9 +8,10 @@ import glob
 import configparser
 from optparse import OptionParser
 import numpy as np
+import pandas as pd
 
 if __name__ == '__main__':
-	
+
 	######################################################################
 	usa = u"Usage: %prog [options] "
 	parser = OptionParser(usage=usa)
@@ -20,45 +21,57 @@ if __name__ == '__main__':
 	parser.add_option( "--suffix", action="store", type="string", default="", dest="suf", help=u"Set suffix for posdiff files (res.SITE[suf].dat)" )
 	(options, args) = parser.parse_args()
 	#####################################################################
-	
+
 	if options.resfls=="":
-		print("Use --resfiles option for 'res.dat' in sigle-epoch analysis")
+		print("Use --resfiles option for 'res.dat' in single-epoch analysis")
 		sys.exit(1)
-	
+
 	resfs = options.resfls.strip('"').strip("'")
 	resfiles = glob.glob(resfs)
 	resfiles.sort()
-	
+
 	if len(resfiles) == 0:
 		print("Not found (res.dat) : %s " % options.res_files)
 		sys.exit(1)
 	elif len(resfiles) == 1:
 		print("Only 1 res.dat file is found : %s " % options.res_files)
 		sys.exit(1)
-	
+
 	# make array geometry from resfiles
 	allMT = []
 	alldpos = []
 	posdata = []
 	ydate   = []
-	
+
 	### make directory ###
 	pddir = options.directory+"/"
 	if not os.path.exists(pddir):
 		os.makedirs(pddir[:-1])
 	posdiff = options.directory + "/res."+options.SITE+options.suf+".dat"
-	
-	pd = open(posdiff, "w")
-	pd.write("#SITE: %s\n" % options.SITE)
-	pd.write("#Year          EW[m]      NS[m]      UD[m]   sgmEW[m]   sgmNS[m]   sgmUD[m]\n")
+
+	posd = open(posdiff, "w")
+	posd.write("#SITE: %s\n" % options.SITE)
+	posd.write("#Year          EW[m]      NS[m]      UD[m]   sgmEW[m]   sgmNS[m]   sgmUD[m]\n")
 	print(posdiff)
-	
-	iresf = 0
+
+	#check observation date
+	dd = []
 	for resf in resfiles:
-		
 		cfg = configparser.ConfigParser()
 		cfg.read(resf, 'UTF-8')
-		
+		date0 = cfg.get("Obs-parameter", "Date(jday)")
+		year, day = date0.split("-")
+		date = (float(year)-2000.) + float(day)/365.
+		dd.append(date)
+	rf = pd.DataFrame(list(zip(*[dd, resfiles])), columns=['d', 'file'])
+	rf = rf.sort_values('d', ascending=True)
+
+	iresf = 0
+	for resf in rf["file"]:
+
+		cfg = configparser.ConfigParser()
+		cfg.read(resf, 'UTF-8')
+
 		### Check site-name ###
 		site  = cfg.get("Obs-parameter", "Site_name")
 		date0 = cfg.get("Obs-parameter", "Date(jday)")
@@ -68,7 +81,7 @@ if __name__ == '__main__':
 		if site != options.SITE:
 			print("Bad res-file (site-name does not match) : %s"  % resf)
 			sys.exit(1)
-		
+
 		### Check geocent ###
 		geocent = [ float( cfg.get("Site-parameter", "Latitude0")  ),
 					float( cfg.get("Site-parameter", "Longitude0") ),
@@ -78,17 +91,16 @@ if __name__ == '__main__':
 				print("Bad res-file (geometry-center does not match) : %s"  % resf)
 				sys.exit(1)
 		geocent0 = geocent
-		
+
 		### Check dCentPos ###
 		dpos = cfg.get("Model-parameter", "dCentPos").split()
 		dpos = np.array([yy, float(dpos[0]), float(dpos[1]), float(dpos[2]),float(dpos[3]), float(dpos[4]), float(dpos[5])])
 		ldp = " ".join(['{:10.4f}'.format(a) for a in dpos])
-		pd.write(ldp+"\n")
+		posd.write(ldp+"\n")
 		print(ldp)
-		
+
 		iresf += 1
-		
-	pd.close()
-	
+
+	posd.close()
+
 	exit()
-	
