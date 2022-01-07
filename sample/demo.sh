@@ -11,7 +11,11 @@ fini1="Settings-fix.ini"
 
 mc="1" # max core
 
-slvsingle="${bindir}/solveSingleEpoch.py"
+### change for your correct python3 executable 
+#python_exe="python3"
+python_exe="python"
+
+slvsingle="${python_exe} ${bindir}/solveSingleEpoch.py"
 
 # if false, skip #
 isingle=true
@@ -52,14 +56,14 @@ if "$isingle"; then
 		if "${irun}"; then ${cmd}; fi
 		if [ $? = 1 ]; then echo "error!"; exit ; fi
 		
-		plotcmd="${bindir}/plot_EpochResults_v1.0.py --resfiles \"./${singledir}/${site}/${bn/-initcfg.ini}*-res.dat\""
+		plotcmd="${python_exe} ${bindir}/plot_EpochResults_v1.0.py --resfiles \"./${singledir}/${site}/${bn/-initcfg.ini}*-res.dat\""
 		
 		if "${iplot}"; then echo ${plotcmd}; ${plotcmd}; fi
 	
 	done
 	
 	### make fixcfg ###
-	cmd="${bindir}/makeFixCfg.py -d ./${cfgfixdir}/ --res_singles \"./${singledir}/${site}/*-res.dat\""
+	cmd="${python_exe} ${bindir}/makeFixCfg.py -d ./${cfgfixdir}/ --res_singles \"./${singledir}/${site}/*-res.dat\""
 	echo ${cmd}
 	
 	if "${irun}"; then ${cmd}; fi
@@ -91,12 +95,12 @@ if "$ifix"; then
 		if "${irun}"; then ${cmd}; fi
 		if [ $? = 1 ]; then echo "error!"; exit ; fi
 		
-		plotcmd="${bindir}/plot_EpochResults_v1.0.py --resfiles \"./${fixresdir}/${site}/${bn/-fix.ini}*-res.dat\""
+		plotcmd="${python_exe} ${bindir}/plot_EpochResults_v1.0.py --resfiles \"./${fixresdir}/${site}/${bn/-fix.ini}*-res.dat\""
 		
 		if "${iplot}"; then echo ${plotcmd}; ${plotcmd}; fi
 	done
 	
-	cmd="${bindir}/makePosDiff.py --site ${site} -d ./${fixresdir} --resfiles \"./${fixresdir}/${site}/*-res.dat\""
+	cmd="${python_exe} ${bindir}/makePosDiff.py --site ${site} -d ./${fixresdir} --resfiles \"./${fixresdir}/${site}/*-res.dat\""
 	echo ${cmd}
 	if "${irun}"; then ${cmd}; fi
 fi
