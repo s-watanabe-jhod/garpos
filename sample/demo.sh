@@ -12,8 +12,8 @@ fini1="Settings-fix.ini"
 mc="1" # max core
 
 ### change for your correct python3 executable 
-#python_exe="python"
-python_exe="python3"
+#python_exe="python3"
+python_exe="python"
 
 slvsingle="${python_exe} ${bindir}/solveSingleEpoch.py"
 
