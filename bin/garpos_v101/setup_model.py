@@ -1,6 +1,9 @@
 """
 Created:
 	07/01/2020 by S. Watanabe
+Modified:
+	01/07/2022 by S. Watanabe
+		to use cholesky decomposition for calc. inverse
 Contains:
 	init_position
 	make_knots
@@ -10,6 +13,7 @@ Contains:
 import sys
 import numpy as np
 from scipy.sparse import csc_matrix, lil_matrix, linalg
+from sksparse.cholmod import cholesky
 
 
 def init_position(cfg, denu, MTs):
@@ -101,7 +105,7 @@ def init_position(cfg, denu, MTs):
 	return mp, Dipos, slvidx0, mtidx
 
 
-def make_knots(shotdat, spdeg, nmpsv):
+def make_knots(shotdat, spdeg, knotintervals):
 	"""
 	Create the B-spline knots for correction value "gamma".
 
@@ -111,8 +115,8 @@ def make_knots(shotdat, spdeg, nmpsv):
 		GNSS-A shot dataset.
 	spdeg : int
 		spline degree (=3).
-	nmpsv : list of int (len=5)
-		number of knots per subset.
+	knotintervals : list of int (len=5)
+		approximate knot intervals.
 
 	Returns
 	-------
@@ -121,21 +125,14 @@ def make_knots(shotdat, spdeg, nmpsv):
 	"""
 
 	sets = shotdat['SET'].unique()
-	stf0 = 0.
-	setint = []
-
 	st0s = np.array([shotdat.loc[shotdat.SET==s, "ST"].min() for s in sets])
 	stfs = np.array([shotdat.loc[shotdat.SET==s, "RT"].max() for s in sets])
-	setdurs = stfs - st0s
-	setints = st0s[1:] - stfs[:-1]
-	setdur = setdurs.mean()
 
 	st0 = shotdat.ST.values.min()
 	stf = shotdat.RT.values.max()
-
 	obsdur = stf - st0
-	nsetdur = int(obsdur/setdur)
-	nknots = [ n * nsetdur for n in nmpsv ]
+
+	nknots = [ int(obsdur/knint) for knint in knotintervals ]
 	knots = [ np.linspace(st0, stf, nall+1) for nall in nknots ]
 
 	for k, cn in enumerate(knots):
@@ -144,11 +141,12 @@ def make_knots(shotdat, spdeg, nmpsv):
 			knots[k] = np.array([])
 			continue
 
-		rmknot = []
+		rmknot = np.array([])
 		for i in range(len(sets)-1):
 			isetkn = np.where( (knots[k]>stfs[i]) & (knots[k]<st0s[i+1]) )[0]
 			if len(isetkn) > 2*(spdeg+2):
-				rmknot += isetkn[spdeg+1:-spdeg-1].tolist()
+				rmknot = np.append(rmknot, isetkn[spdeg+1:-spdeg-1])
+		rmknot = rmknot.astype(int)
 		if len(rmknot) > 0:
 			knots[k] = np.delete(knots[k], rmknot)
 
@@ -215,7 +213,7 @@ def derivative2(imp0, p, knots, lambdas):
 	return H
 
 
-def data_correlation(shotdat, icorrE, T0, mu_t, mu_m):
+def data_correlation(shotdat, TT0, mu_t, mu_m):
 	"""
 	Calculate the covariance matrix for data.
 
@@ -223,10 +221,8 @@ def data_correlation(shotdat, icorrE, T0, mu_t, mu_m):
 	----------
 	shotdat : DataFrame
 		GNSS-A shot dataset.
-	icorrE : bool
-		if the matrix has finite covariance terms or not.
-	T0 : float
-		Typical travel time (in sec.).
+	TT0 : ndarray (len=ndata)
+		Vector of (travel time) / (characteristic travel time).
 	mu_t : float
 		Correlation length (in sec.).
 	mu_m : float
@@ -241,36 +237,24 @@ def data_correlation(shotdat, icorrE, T0, mu_t, mu_m):
 		|Ei| is the determinant of Ei.
 	"""
 
-	TT0 = shotdat.TT.values / T0
+	ndata = shotdat.index.size
+	sts = shotdat.ST.values
+	mtids = shotdat.mtid.values
+	negativedST = shotdat[ (shotdat.ST.diff(1) == 0.) & (shotdat.mtid.diff(1) ==0.) ]
+	if len(negativedST) > 0:
+		print(negativedST.index)
+		print("error in data_var_base; see setup_model.py")
+		sys.exit(1)
 
-	if icorrE:
-		ndata = shotdat.index.size
-		sts = shotdat.ST.values
-		mtids = shotdat.mtid.values
-		negativedST = shotdat[ (shotdat.ST.diff(1) == 0.) & (shotdat.mtid.diff(1) ==0.) ]
-		if len(negativedST) > 0:
-			print(negativedST.index)
+	E = lil_matrix( (ndata, ndata) )
+	for i, (iMT, iST) in enumerate(zip( mtids, sts )):
+		idx = shotdat[ ( abs(sts - iST) < mu_t * 4.)].index
+		dshot = np.abs(iST - sts[idx])/mu_t
+		dcorr = np.exp(-dshot) * (mu_m + (1.-mu_m)*(iMT==mtids[idx]))
+		E[i,idx] = dcorr / TT0[i] / TT0[idx]
+	E = E.tocsc()
 
-		E = lil_matrix( (ndata, ndata) )
-		for i, (iMT, iST) in enumerate(zip( mtids, sts )):
-			idx = shotdat[ ( abs(sts - iST) < mu_t * 4.)].index
-			dshot = np.abs(iST - sts[idx])/mu_t
-			dcorr = np.exp(-dshot) * (mu_m + (1.-mu_m)*(iMT==mtids[idx]))
-			E[i,idx] = dcorr / TT0[i] / TT0[idx]
-		E = E.tocsc()
+	# cholesky decomposition
+	E_factor = cholesky(E, ordering_method="natural")
 
-		lu = linalg.splu(E)
-		Ei = csc_matrix(lu.solve(np.eye(ndata)))
-
-		diagL = lu.L.diagonal()
-		diagU = lu.U.diagonal()
-		diagL = diagL.astype(np.complex128)
-		diagU = diagU.astype(np.complex128)
-		logdetE  = np.log(diagL).sum() + np.log(diagU).sum()
-		logdetEi = -logdetE.real
-
-	else:
-		Ei = csc_matrix( np.diag(TT0**2.) )
-		logdetEi = (np.log(TT0**2.)).sum()
-
-	return Ei, logdetEi
+	return E_factor

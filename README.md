@@ -3,8 +3,10 @@
 "GARPOS" (GNSS-Acoustic Ranging combined POsitioning Solver) is an analysis tool for GNSS-Acoustic seafloor positioning.
 
 ### Version
-Latest version is GARPOS v1.0.0 (Feb. 8. 2021)
+Latest version is GARPOS v1.0.1 (Apr. 5. 2022)
 
+#### Major change(s)
+* v1.0.1: to set B-spline's knots by time interval (also need to change "Setup.ini" file)
 
 # Citation
 
@@ -13,7 +15,7 @@ Latest version is GARPOS v1.0.0 (Feb. 8. 2021)
 Watanabe, S., Ishikawa, T., Yokota, Y., & Nakamura, Y. (2020). GARPOS: analysis software for the GNSS-A seafloor positioning with simultaneous estimation of sound speed structure, Front. Earth Sci. (https://doi.org/10.3389/feart.2020.597532).
 
 ### for code
-Shun-ichi Watanabe, Tadashi Ishikawa, Yusuke Yokota, & Yuto Nakamura. (2020). GARPOS: Analysis tool for GNSS-Acoustic seafloor positioning (Version 1.0.0). Zenodo. https://doi.org/10.5281/zenodo.4522027
+Shun-ichi Watanabe, Tadashi Ishikawa, Yuto Nakamura & Yusuke Yokota. (2022). GARPOS: Analysis tool for GNSS-Acoustic seafloor positioning (Version 1.0.1). Zenodo. (DOI will be soon applied)
 
 ## Corresponding author
 

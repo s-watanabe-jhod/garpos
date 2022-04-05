@@ -14,6 +14,9 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import pandas as pd
 
+from pandas.plotting import register_matplotlib_converters
+register_matplotlib_converters()
+
 
 def plot_residuals(resf, obsfile, mpfile, d0, MTs, V0, ext):
 	
@@ -99,10 +102,10 @@ def plot_residuals(resf, obsfile, mpfile, d0, MTs, V0, ext):
 		
 		fig = plt.figure(figsize=(14,18))
 		plt.rcParams["font.size"] = 18
-		ax0 = fig.add_subplot(4, 1, 1) 
-		ax1 = fig.add_subplot(4, 1, 2, sharex=ax0) 
-		ax2 = fig.add_subplot(4, 1, 3, sharex=ax0) 
-		ax3 = fig.add_subplot(4, 1, 4) 
+		ax0 = fig.add_subplot(4, 1, 1)
+		ax1 = fig.add_subplot(4, 1, 2, sharex=ax0)
+		ax2 = fig.add_subplot(4, 1, 3, sharex=ax0)
+		ax3 = fig.add_subplot(4, 1, 4)
 		ax0.set_position([0.125, 0.7, 0.75, 0.2])
 		ax1.set_position([0.125, 0.6, 0.75, 0.1])
 		ax2.set_position([0.125, 0.4, 0.75, 0.2])
