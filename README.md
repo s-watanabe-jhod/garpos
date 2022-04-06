@@ -7,6 +7,7 @@ Latest version is GARPOS v1.0.1 (Apr. 5. 2022)
 
 #### Major change(s)
 * v1.0.1: to set B-spline's knots by time interval (also need to change "Setup.ini" file)
+* v1.0.1: to use Cholesky decomposition (module "sksparse" is needed)
 
 # Citation
 
@@ -37,7 +38,7 @@ Please see Watanabe, S., Ishikawa, T., Yokota, Y., and Nakamura, Y., (2020) http
 # Requirements
 
 * Python 3.7.3
-* Packages NumPy, Scipy, Pandas, and Matplotlib are also required.
+* Packages NumPy, Scipy, Pandas, Matplotlib, and Scikit-sparse are also required.
 * Fortran 90 compiler (e.g., gfortran)
 
 Environments under [Anaconda for Linux](https://www.anaconda.com/distribution/) is tested.
