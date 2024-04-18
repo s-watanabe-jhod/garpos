@@ -1,4 +1,4 @@
-# GARPOS
+<img src="https://github.com/s-watanabe-jhod/garpos/assets/68180987/c7098604-1a07-4aa2-b591-1797eef5f07b" width=400 alt="GARPOS" style="background-color:white;">
 
 "GARPOS" (GNSS-Acoustic Ranging combined POsitioning Solver) is an analysis tool for GNSS-Acoustic seafloor positioning.
 
@@ -8,6 +8,7 @@ Latest version is GARPOS v1.0.1 (Apr. 5. 2022)
 #### Major change(s)
 * v1.0.1: to set B-spline's knots by time interval (also need to change "Setup.ini" file)
 * v1.0.1: to use Cholesky decomposition (module "sksparse" is needed)
+  * NOTE: some reported that "sksparse" cannot be used on Apple M1 Chip. 
 
 # Citation
 
