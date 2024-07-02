@@ -21,7 +21,7 @@ Watanabe, S., Ishikawa, T., Yokota, Y., & Nakamura, Y. (2020). GARPOS: analysis 
 
 ### for code
 
-Shun-ichi Watanabe, Tadashi Ishikawa, Yuto Nakamura & Yusuke Yokota. (2022). GARPOS: Analysis tool for GNSS-Acoustic seafloor positioning (Version 1.0.1). Zenodo. (https://doi.org/10.5281/zenodo.6414642)
+Shun-ichi Watanabe, Tadashi Ishikawa, Yuto Nakamura & Yusuke Yokota. (2024). GARPOS: Analysis tool for GNSS-Acoustic seafloor positioning (Version 1.0.2). Zenodo. (https://doi.org/10.5281/zenodo.12620693)
 
 ## Corresponding author
 
