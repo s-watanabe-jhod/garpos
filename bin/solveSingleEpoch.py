@@ -5,7 +5,7 @@ import sys
 
 #sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
-from garpos_v101.garpos_main import drive_garpos
+from garpos_v102.garpos_main import drive_garpos
 
 if __name__ == '__main__':
 

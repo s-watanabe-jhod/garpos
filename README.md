@@ -1,14 +1,15 @@
-<img src="https://github.com/s-watanabe-jhod/garpos/assets/68180987/ed955d3c-4c3b-4ca3-91d5-f57b876cfa7b" width=400 alt="GARPOS">
+# GARPOS
 
 "GARPOS" (GNSS-Acoustic Ranging combined POsitioning Solver) is an analysis tool for GNSS-Acoustic seafloor positioning.
 
 ### Version
-Latest version is GARPOS v1.0.1 (Apr. 5. 2022)
+Latest version is GARPOS v1.0.2 (Jul. 2. 2024)
 
 #### Major change(s)
+* v1.0.2: to apply a mode for "array take-over" (solve each transponder's position and parallel disp. simultaneously)
+* v1.0.2: parameter "invtyp" is deleted. Users can set zero in config files to solve limited parameter(s), instead.
 * v1.0.1: to set B-spline's knots by time interval (also need to change "Setup.ini" file)
 * v1.0.1: to use Cholesky decomposition (module "sksparse" is needed)
-  * NOTE: some reported that "sksparse" cannot be used on Apple M1 Chip. 
 
 # Citation
 
@@ -17,6 +18,7 @@ Latest version is GARPOS v1.0.1 (Apr. 5. 2022)
 Watanabe, S., Ishikawa, T., Yokota, Y., & Nakamura, Y. (2020). GARPOS: analysis software for the GNSS-A seafloor positioning with simultaneous estimation of sound speed structure, Front. Earth Sci. (https://doi.org/10.3389/feart.2020.597532).
 
 ### for code
+
 Shun-ichi Watanabe, Tadashi Ishikawa, Yuto Nakamura & Yusuke Yokota. (2022). GARPOS: Analysis tool for GNSS-Acoustic seafloor positioning (Version 1.0.1). Zenodo. (https://doi.org/10.5281/zenodo.6414642)
 
 ## Corresponding author
@@ -29,11 +31,6 @@ Shun-ichi Watanabe, Tadashi Ishikawa, Yuto Nakamura & Yusuke Yokota. (2022). GAR
 # License
 
 "GARPOS" is distributed under the [GPL 3.0] (https://www.gnu.org/licenses/gpl-3.0.html) license.
-
-
-### Algorithm and documentation
-
-Please see Watanabe, S., Ishikawa, T., Yokota, Y., and Nakamura, Y., (2020) https://doi.org/10.3389/feart.2020.597532
 
 
 # Requirements

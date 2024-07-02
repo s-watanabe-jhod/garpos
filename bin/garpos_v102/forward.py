@@ -116,8 +116,8 @@ def calc_gamma(mp, shotdat, imp0, spdeg, knots):
 	a1 = []
 	for k, kn in enumerate(knots):
 		if len(kn) == 0:
-			a0.append( 0. )
-			a1.append( 0. )
+			a0.append( np.zeros(len(shotdat.ST)) )
+			a1.append( np.zeros(len(shotdat.RT)) )
 			continue
 		ct = mp[imp0[k]:imp0[k+1]]
 		bs = BSpline(kn, ct, spdeg, extrapolate=False)

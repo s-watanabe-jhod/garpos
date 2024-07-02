@@ -68,7 +68,7 @@ def write_cfg(of, obsp, datap, sitep, modelp, comment=""):
 	return
 
 
-def outresults(odir, suf, cfg, invtyp, imp0, slvidx0,
+def outresults(odir, suf, cfg, imp0, slvidx0,
 			   C, mp, shots, comment, MTs, mtidx, av):
 	"""
 	Output the results.
@@ -142,19 +142,11 @@ def outresults(odir, suf, cfg, invtyp, imp0, slvidx0,
 	###################
 	# Write Shot Data #
 	###################
-	if invtyp != 0:
-		shots['dV0'] = av[0][0]/2. + av[1][0]/2.
-		shots['gradV1e'] = av[0][1]/2. + av[1][1]/2.
-		shots['gradV1n'] = av[0][2]/2. + av[1][2]/2.
-		shots['gradV2e'] = av[0][3]/2. + av[1][3]/2.
-		shots['gradV2n'] = av[0][4]/2. + av[1][4]/2.
-	elif not "dV0" in shots.columns:
-		shots['dV0'] = 0.
-		shots['gradV1e'] = 0.
-		shots['gradV1n'] = 0.
-		shots['gradV2e'] = 0.
-		shots['gradV2n'] = 0.
-	
+	shots['dV0'] = av[0][0]/2. + av[1][0]/2.
+	shots['gradV1e'] = av[0][1]/2. + av[1][1]/2.
+	shots['gradV1n'] = av[0][2]/2. + av[1][2]/2.
+	shots['gradV2e'] = av[0][3]/2. + av[1][3]/2.
+	shots['gradV2n'] = av[0][4]/2. + av[1][4]/2.
 	shots["LogResidual"] = shots["ResiTT"]
 	shots["ResiTT"] = shots["ResiTTreal"]
 	ashot = shots.loc[:,[

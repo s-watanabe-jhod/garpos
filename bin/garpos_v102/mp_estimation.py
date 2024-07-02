@@ -9,6 +9,11 @@ Modified:
 		to use cholesky decomposition for calc. inverse
 	03/30/2022 by S. Watanabe and Y. Nakamura
 		to adjust the threshold for rank calculation
+	07/01/2024 by S. Watanabe 
+		to apply a mode for "array take-over"
+		(to solve each position and parallel disp. simultaneously)
+		"invtyp" is deleted. users can set zero in config files 
+		to solve limited parameter(s).
 """
 import os
 import sys
@@ -25,7 +30,7 @@ from .forward import calc_forward, calc_gamma, jacobian_pos
 from .output import outresults
 
 
-def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
+def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m):
 	"""
 	Run the model parameter estimation. (under given hyperparameter)
 
@@ -51,8 +56,6 @@ def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 	mu_m : float
 		Hyperparameter (mu_MT).
 		Controls the inter-transponder data correlation.
-	denu : ndarray (len=3)
-		Positional offset (only applicable in case invtyp = 1).
 
 	Returns
 	-------
@@ -78,7 +81,6 @@ def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 	################################
 	icfg = configparser.ConfigParser()
 	icfg.read(icfgf, 'UTF-8')
-	invtyp = int(icfg.get("Inv-parameter","inversiontype"))
 	knotint0 = float(icfg.get("Inv-parameter","knotint0"))*60.
 	knotint1 = float(icfg.get("Inv-parameter","knotint1"))*60.
 	knotint2 = float(icfg.get("Inv-parameter","knotint2"))*60.
@@ -86,13 +88,6 @@ def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 	scale = float(icfg.get("Inv-parameter","traveltimescale"))
 	maxloop = int(icfg.get("Inv-parameter","maxloop"))
 	ConvCriteria = float(icfg.get("Inv-parameter","ConvCriteria"))
-
-	if invtyp == 0:
-		knotint0 = 0.
-		knotint1 = 0.
-		knotint2 = 0.
-	if knotint0+knotint1+knotint2 <= 1.e-4:
-		invtyp = 0
 
 	#############################
 	### Set Config Parameters ###
@@ -135,11 +130,10 @@ def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 	############################
 	### Set Model Parameters ###
 	############################
-	mode = "Inversion-type %1d" % invtyp
-	mppos, Dipos, slvidx0, mtidx = init_position(cfg, denu, MTs)
+	mppos, Dipos, slvidx0, mtidx = init_position(cfg, MTs)
 
 	# in case where positions should not be solved
-	if invtyp == 1:
+	if len(slvidx0) == 0:
 		Dipos = lil_matrix( (0, 0) )
 		slvidx0 = np.array([])
 
@@ -182,12 +176,12 @@ def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 	rankDi = np.linalg.matrix_rank(Di.toarray(), tol=1.e-8)
 	eigvDi = np.linalg.eigh(Di.toarray())[0]
 	eigvDi = eigvDi[ np.where(np.abs(eigvDi.real) > 1.e-8/lamb0)].real
-	# print(rankDi, len(eigvDi))
+
 	if rankDi != len(eigvDi):
-		# print(eigvDi)
 		print(np.linalg.matrix_rank(Di), len(eigvDi))
 		print("Error in calculating eigen value of Di !!!")
 		sys.exit(1)
+
 	logdetDi = np.log(eigvDi).sum()
 
 	# Initial parameters for gradient gamma
@@ -223,8 +217,7 @@ def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 	## data correlation ##
 	######################
 	# Calc initial ResiTT
-	if invtyp != 0:
-		shots["gamma"] = 0.
+	shots["gamma"] = 0.
 	shots = calc_forward(shots, mp, nMT, icfg, svp, T0)
 
 	# Set data covariance
@@ -263,7 +256,7 @@ def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 			jcb = lil_matrix( (nmp, ndata) )
 
 		# Calc Jacobian for gamma
-		if invtyp != 0 and (rsig > 0.1 or iloop == 0):
+		if rsig > 0.1 or iloop == 0:
 			mpj = np.zeros(imp0[5])
 			imp = nmppos
 
@@ -276,10 +269,9 @@ def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 				mpj[impsv] = 0.
 
 		# Calc Jacobian for position
-		if invtyp != 1:
+		if len(slvidx0) != 0:
 			jcb0 = jacobian_pos(icfg, mp, slvidx0, tmp, mtidx, svp, T0)
 			jcb[:nmppos, :] = jcb0[:nmppos, :]
-
 		jcb = jcb.tocsc()
 
 		############################
@@ -299,11 +291,11 @@ def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 		Cki_factor = cholesky(Cki.tocsc(), ordering_method="natural")
 		Ckrk = Cki_factor(rk)
 		dmp  = alpha * Ckrk
-
+		
 		dxmax = max(abs(dmp[:]))
-		if invtyp == 1 and rsig <= 0.1:
-			dposmax = 0. # no loop needed in invtyp = 1
-		elif invtyp == 1 and rsig > 0.1:
+		if len(slvidx0) == 0 and rsig <= 0.1:
+			dposmax = 0.
+		elif len(slvidx0) == 0 and rsig > 0.1:
 			dposmax = ConvCriteria/200.
 		else:
 			dposmax = max(abs(dmp[:nmppos]))
@@ -319,12 +311,9 @@ def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 		####################
 		### CALC Forward ###
 		####################
-		if invtyp != 0:
-			gamma, a  = calc_gamma(mp, shots, imp0, spdeg, knots)
-			shots["gamma"] = gamma * scale
-			av = np.array(a) * scale * V0
-		else:
-			av = 0. # dummy
+		gamma, a  = calc_gamma(mp, shots, imp0, spdeg, knots)
+		shots["gamma"] = gamma * scale
+		av = np.array(a) * scale * V0
 		shots['dV'] = shots.gamma * V0
 
 		shots = calc_forward(shots, mp, nMT, icfg, svp, T0)
@@ -341,8 +330,6 @@ def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 			shots.loc[ (shots.m0flag), ['flag']] = ((shots['ResiTT'] > th0) | (shots['ResiTT'] < th1))
 			aveRTT1 = shots[~shots['flag']].ResiTT.mean()
 			sigRTT1 = shots[~shots['flag']].ResiTT.std()
-
-
 
 		tmp = shots[~shots['flag']].reset_index(drop=True).copy()
 		ndata = len(tmp.index)
@@ -377,7 +364,7 @@ def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 		##################
 		### Check Conv ###
 		##################
-		loopres  = "%s Loop %2d-%2d, " % (mode, 1, iloop+1)
+		loopres  = "Inversion loop %03d, " % (iloop+1)
 		loopres += "RMS(TT) = %10.6f ms, " % (datarms*1000.)
 		loopres += "used_shot = %5.1f%%, reject = %4d, " % (ratio, reject)
 		loopres += "Max(dX) = %10.4f, Hgt = %10.3f" % (dxmax, aved)
@@ -423,7 +410,7 @@ def MPestimate(cfgf, icfgf, odir, suf, lamb0, lgrad, mu_t, mu_m, denu):
 	# Write Result data #
 	#####################
 
-	resf, dcpos = outresults(odir, suf, cfg, invtyp, imp0, slvidx0,
+	resf, dcpos = outresults(odir, suf, cfg, imp0, slvidx0,
 							 C, mp, shots, comment, MTs, mtidx, av)
 
 	return [resf, datarms, abic, dcpos]

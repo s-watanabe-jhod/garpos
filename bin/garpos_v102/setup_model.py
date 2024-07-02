@@ -4,6 +4,9 @@ Created:
 Modified:
 	01/07/2022 by S. Watanabe
 		to use cholesky decomposition for calc. inverse
+	07/01/2024 by S. Watanabe
+		to apply a mode for "array take-over"
+		(to solve each position and parallel disp. simultaneously)
 Contains:
 	init_position
 	make_knots
@@ -16,7 +19,7 @@ from scipy.sparse import csc_matrix, lil_matrix, linalg
 from sksparse.cholmod import cholesky
 
 
-def init_position(cfg, denu, MTs):
+def init_position(cfg, MTs):
 	"""
 	Calculate Jacobian matrix for positions.
 
@@ -24,8 +27,6 @@ def init_position(cfg, denu, MTs):
 	----------
 	cfg : configparser
 		Config file for site paramters.
-	denu : ndarray
-		Input of position (mainly for particle filters).
 	MTs : list
 		List of transponders' name.
 
@@ -53,7 +54,7 @@ def init_position(cfg, denu, MTs):
 
 	dcnt = cfg.get("Model-parameter", "dCentPos").split()
 	dcnt = list(map(float, dcnt))
-	mp = np.append(mp, dcnt[0:3]+denu[0:3])
+	mp = np.append(mp, dcnt[0:3])
 	ae = np.append(ae, dcnt[3:6])
 	if len(dcnt) <= 6:
 		covNU = 0.0
@@ -63,8 +64,13 @@ def init_position(cfg, denu, MTs):
 		covNU = dcnt[6]
 		covUE = dcnt[7]
 		covEN = dcnt[8]
-	if ae[len(MTs)*3:].sum() > 0.001 and ae[0:len(MTs)*3].sum() > 0.001:
-		print("Error: ape for each station must be 0 in rigid-array mode!")
+	ae3 = ae.reshape(int(len(ae)/3),3)
+	aee = np.count_nonzero(ae3[:,0] > 1.e-8)
+	aen = np.count_nonzero(ae3[:,1] > 1.e-8)
+	aeu = np.count_nonzero(ae3[:,2] > 1.e-8)
+	
+	if aee > len(MTs) or aen > len(MTs) or aeu > len(MTs):
+		print("Error: positions to be solved must be smaller than the number of MTs!")
 		sys.exit(1)
 
 	atd = cfg.get("Model-parameter", "ATDoffset").split()
@@ -100,7 +106,10 @@ def init_position(cfg, denu, MTs):
 		for j, jpos in enumerate(slvidx0):
 			Dpos[i, j] = D0pos[ipos,jpos]
 	Dpos = Dpos.tocsc()
-	Dipos = linalg.inv( Dpos )
+	if nmppos == 0:
+		Dipos = Dpos
+	else:
+		Dipos = linalg.inv( Dpos )
 
 	return mp, Dipos, slvidx0, mtidx
 
@@ -132,7 +141,7 @@ def make_knots(shotdat, spdeg, knotintervals):
 	stf = shotdat.RT.values.max()
 	obsdur = stf - st0
 
-	nknots = [ int(obsdur/knint) for knint in knotintervals ]
+	nknots = [ int(obsdur/knint) if knint!=0 else 0 for knint in knotintervals ]
 	knots = [ np.linspace(st0, stf, nall+1) for nall in nknots ]
 
 	for k, cn in enumerate(knots):
