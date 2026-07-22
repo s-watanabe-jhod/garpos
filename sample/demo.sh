@@ -65,7 +65,7 @@ if "$isingle"; then
 	done
 	
 	### make fixcfg ###
-	cmd="${python_exe} ${bindir}/makeFixCfg.py -d ./${cfgfixdir}/ --res_singles \"./${singledir}/${site}/*-res.dat\""
+	cmd="${python_exe} ${bindir}/makeAveFixCfg.py -d ./${cfgfixdir}/ --res_singles \"./${singledir}/${site}/*-res.dat\""
 	echo ${cmd}
 	
 	if "${irun}"; then ${cmd}; fi

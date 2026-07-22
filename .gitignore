@@ -1,0 +1,6 @@
+bin/garpos_v120/__pychache__
+bin/garpos_v120/f90lib/lib_raytrace.so
+bin/garpos_v120/f90lib/subraytrace.mod
+sample/cfgfix
+sample/demo_prep
+sample/demo_res
